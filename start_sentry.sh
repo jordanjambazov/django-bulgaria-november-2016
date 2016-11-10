@@ -20,6 +20,7 @@ docker run \
   --env POSTGRES_PASSWORD=secret \
   --env POSTGRES_USER=sentry \
   postgres:9.5
+sleep 3
 
 
 docker run \
