@@ -1,0 +1,3 @@
+[submodule "onpremise"]
+	path = onpremise
+	url = https://github.com/getsentry/onpremise.git
