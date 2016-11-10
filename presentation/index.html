@@ -81,10 +81,6 @@ Feb 27 18:30:00 jordan-laptop coolservice[957]: and all these events
         </section>
 
         <section>
-          <h1>Grok</h1>
-        </section>
-
-        <section>
           <img src="img/fb-chat.png"/>
         </section>
 
@@ -123,11 +119,103 @@ Feb 27 18:30:00 jordan-laptop coolservice[957]: and all these events
         </section>
 
         <section>
-          <h1>Оперативна Интелигентност</h1>
+          <p><img src="img/splunk.png" style="max-width: 150px;"/></p>
+          <p><img src="img/elastic.png" style="max-width: 150px;"/></p>
+          <p><img src="img/cloud_watch.png" style="max-width: 150px;"/></p>
+          <p><img src="img/nagios.jpg" style="max-width: 150px;"/></p>
+          <p><img src="img/statsd.png" style="max-width: 150px;"/></p>
         </section>
 
         <section>
-          <img src="img/oi.jpg">
+          <h3>Latency</h3>
+          <p>
+            <img src="img/latency.png"/>
+          </p>
+        </section>
+
+        <section>
+          <h3>Неуспешни опити за SSH</h3>
+          <p>
+            <img src="img/failed_login_attempts.png"/>
+          </p>
+        </section>
+
+        <section>
+          <h3>Filebeat</h3>
+          <pre><code data-trim data-noescape>
+filebeat:
+  prospectors:
+    - paths:
+        - /var/log/auth.log
+        - /var/log/syslog
+
+      input_type: log
+      document_type: syslog
+          </code></pre>
+        </section>
+
+        <section>
+          <h3>Filebeat (2)</h3>
+          <pre><code data-trim data-noescape>
+output:
+  logstash:
+    hosts: ["elastic.ioera.com:5044"]
+    bulk_max_size: 256
+          </code></pre>
+        </section>
+
+        <section>
+          <h3>Logstash input</h3>
+          <pre><code data-trim data-noescape>
+input {
+  beats {
+    port => 5044
+  }
+}
+          </code></pre>
+        </section>
+
+        <section>
+          <h3>Logstash filter</h3>
+          <pre><code data-trim data-noescape>
+filter {
+  if [type] == "syslog" {
+    grok {
+      match => { "message" => "%{SYSLOGTIMESTAMP:syslog_timestamp} %{SYSLOGHOST:syslog_hostname} %{DATA:syslog_program}(?:\[%{POSINT:syslog_pid}\])?: %{GREEDYDATA:syslog_message}" }
+      add_field => [ "received_at", "%{@timestamp}" ]
+      add_field => [ "received_from", "%{host}" ]
+    }
+    date {
+      match => [ "syslog_timestamp", "MMM  d HH:mm:ss"]
+    }
+  }
+}
+          </code></pre>
+        </section>
+
+        <section>
+          <h3>Logstash output</h3>
+          <pre><code data-trim data-noescape>
+output {
+  elasticsearch {
+    hosts => ["localhost:9200"]
+    manage_template => false
+    index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}"
+    document_type => "%{[@metadata][type]}"
+  }
+}
+          </code></pre>
+        </section>
+
+        <section>
+          <p>Beats + Logstash + Elasticsearch + Kibana</p>
+          <p>=</p>
+          <p>Elastic Stack</p>
+          <p class="fragment" data-fragment-index="1"><img src="img/love.ico"/></p>
+        </section>
+
+        <section>
+          <h1>Оперативна Интелигентност</h1>
         </section>
 
         <section>
@@ -137,7 +225,28 @@ Feb 27 18:30:00 jordan-laptop coolservice[957]: and all these events
         </section>
 
         <section>
+          <img src="img/oi.jpg">
+        </section>
 
+        <section>
+          <h1>Действие</h1>
+        </section>
+
+        <section>
+          <ul>
+            <li class="fragment" data-fragment-index="1">
+              Повишено latency -> alarm -> добавяне на сървър
+            </li>
+            <li class="fragment" data-fragment-index="2">
+              Слабо оползотворяване -> премахване на сървър
+            </li>
+            <li class="fragment" data-fragment-index="3">
+              Повече предвидени продажби от складовата наличност -> alert
+            </li>
+            <li class="fragment" data-fragment-index="4">
+              Ненормално поведение на user -> ограничаване на достъп
+            </li>
+          </ul>
         </section>
 
         <section>
