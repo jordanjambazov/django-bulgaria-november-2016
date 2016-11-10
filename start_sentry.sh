@@ -1,3 +1,36 @@
+export REPOSITORY=sentry-onpremise
+
+
+docker stop $(docker ps -a -q)
+docker rm $(docker ps -a -q)
+
+
+make build
+
+
+docker run \
+  --detach \
+  --name sentry-redis \
+  redis:3.2-alpine
+
+
+docker run \
+  --detach \
+  --name sentry-postgres \
+  --env POSTGRES_PASSWORD=secret \
+  --env POSTGRES_USER=sentry \
+  postgres:9.5
+
+
+docker run \
+  --detach \
+  --name sentry-smtp \
+  tianon/exim4
+
+
+export SENTRY_SECRET_KEY=`docker run --rm ${REPOSITORY} config generate-secret-key`
+
+
 docker run --rm -it \
   --link sentry-redis:redis \
   --link sentry-postgres:postgres \
